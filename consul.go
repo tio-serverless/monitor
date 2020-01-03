@@ -32,7 +32,7 @@ func (m monImplement) DisableService(name string) error {
 
 	mta.Remove = true
 
-	content, _ := json.Marshal(m)
+	content, _ := json.Marshal(mta)
 
 	_, err = m.consulCli.KV().Put(&api.KVPair{
 		Key:   val.Key,
