@@ -15,8 +15,8 @@ import (
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
 	tio_control_v1 "github.com/tio-serverless/grpc"
+	"google.golang.org/grpc"
 )
 
 type monImplement struct {
@@ -359,9 +359,14 @@ func (m monImplement) NeedScala(traffic envoyTraffic) (bool, float64) {
 	if exist {
 
 		if traffic.TrafficCount == 0 {
-			err := m.DisableService(traffic.Name)
+			hasDisable, err := m.DisableService(traffic.Name)
 			if err != nil {
 				logrus.Errorf("Disable %s error %s", traffic.Name, err.Error())
+			}
+
+			if hasDisable {
+				// 服务已经被禁用，不需要扩缩容
+				return false, 0
 			}
 			return true, 0
 		}
