@@ -22,7 +22,7 @@ type monitorInterface interface {
 	// NeedScala 是否达到扩缩容标准
 	NeedScala(Traffic envoyTraffic) (bool, float64)
 	//DisableService 禁用服务之后,Envoy将会将请求转发到默认Cluster中
-	DisableService(string) error
+	DisableService(string) (bool, error)
 }
 
 type prometheusInterface interface {
