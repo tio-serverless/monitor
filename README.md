@@ -1,6 +1,8 @@
 # Monitor
 > 监控当前所有的服务实例状态变化. 
 
+[![Build Status](https://travis-ci.com/tio-serverless/monitor.svg?branch=master)](https://travis-ci.com/tio-serverless/monitor)
+
 `monitor server`会启动两个内部服务: 
 
 + `watch server` 监听`prometheus proxy`运行数据，并会根据`control server`下发的`ploy`数据来调整服务实例数据。

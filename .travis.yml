@@ -29,9 +29,9 @@ before_install:
 
 install:
   - go test ./...
-  - go build -mod=vendor -ldflags "-X main._VERSION_=$TIO_VERSION -X main._BRANCH_=$TRAVIS_BRANCH" -o bin/tio-monitor monitor/*.go
+  - go build -mod=vendor -ldflags "-X main._VERSION_=$TIO_VERSION -X main._BRANCH_=$TRAVIS_BRANCH" -o bin/tio-monitor *.go
 
 
 after_script:
-  - docker build -t ${TIO_MONITOR_AGENT}:${TIO_VERSION}-${TRAVIS_BRANCH} -f Dockerfile/Dockerfile.monitor .
+  - docker build -t ${TIO_MONITOR_AGENT}:${TIO_VERSION}-${TRAVIS_BRANCH} -f Dockerfile .
   - docker push ${TIO_MONITOR_AGENT}:${TIO_VERSION}-${TRAVIS_BRANCH}
