@@ -5,9 +5,9 @@ import (
 	"net"
 
 	"github.com/sirupsen/logrus"
+	tio_control_v1 "github.com/tio-serverless/grpc"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
-	tio_control_v1 "github.com/tio-serverless/grpc"
 )
 
 func start(mi *monImplement, port int) {
