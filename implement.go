@@ -37,23 +37,24 @@ func consulInit() (*capi.Client, error) {
 	return capi.NewClient(config)
 }
 
-func NewMonImplement() (*monImplement, error) {
+// newMonImplement 返回monitorInterface的实例
+func newMonImplement() (*monImplement, error) {
 	mi := new(monImplement)
 
 	if os.Getenv("TIO_MONITOR_PROMETHEUS_ADDR") == "" {
-		return nil, fmt.Errorf("TIO_MONITOR_PROMETHEUS_ADDR Empty!")
+		return nil, fmt.Errorf("TIO_MONITOR_PROMETHEUS_ADDR Empty! ")
 	}
 
 	if os.Getenv("TIO_MONITOR_CONTROL_ADDR") == "" {
-		return nil, fmt.Errorf("TIO_MONITOR_CONTROL_ADDR Empty!")
+		return nil, fmt.Errorf("TIO_MONITOR_CONTROL_ADDR Empty! ")
 	}
 
 	if os.Getenv("TIO_MONITOR_PROXY_ADDR") == "" {
-		return nil, fmt.Errorf("TIO_MONITOR_PROXY_ADDR Empty!")
+		return nil, fmt.Errorf("TIO_MONITOR_PROXY_ADDR Empty! ")
 	}
 
 	if os.Getenv("TIO_MONITOR_DEPLOY_ADDR") == "" {
-		return nil, fmt.Errorf("TIO_MONITOR_DEPLOY_ADDR Empty!")
+		return nil, fmt.Errorf("TIO_MONITOR_DEPLOY_ADDR Empty! ")
 	}
 
 	mi.prometheusService = os.Getenv("TIO_MONITOR_PROMETHEUS_ADDR")
@@ -82,18 +83,23 @@ func NewMonImplement() (*monImplement, error) {
 		return nil, fmt.Errorf("Ploy Init Error %s", err.Error())
 	}
 
+	logrus.Debug("Service Endpoints: ")
+	logrus.Debugf("  TIO_MONITOR_PROMETHEUS_ADDR: %s", mi.prometheusService)
+	logrus.Debugf("  TIO_MONITOR_CONTROL_ADDR: %s", mi.controlService)
+	logrus.Debugf("  TIO_MONITOR_PROXY_ADDR: %s", mi.proxyService)
+	logrus.Debugf("  TIO_MONITOR_DEPLOY_ADDR: %s", mi.deployService)
 	return mi, nil
 }
 
 func (m monImplement) Scala(ctx context.Context, in *tio_control_v1.MonitorScalaRequest) (*tio_control_v1.TioReply, error) {
-	return scala(m, ctx, in)
+	return scala(ctx, in, m)
 }
 
 func (m monImplement) Ploy(ctx context.Context, in *tio_control_v1.MonitorScalaRequest) (*tio_control_v1.TioReply, error) {
-	return ploy(m, ctx, in)
+	return ploy(ctx, in, m)
 }
 
-func scala(mi monitorInterface, ctx context.Context, in *tio_control_v1.MonitorScalaRequest) (*tio_control_v1.TioReply, error) {
+func scala(ctx context.Context, in *tio_control_v1.MonitorScalaRequest, mi monitorInterface) (*tio_control_v1.TioReply, error) {
 	_, err := mi.Sacla(in.Name, float64(in.Num))
 	endpoint, err := mi.WaitScala(in.Name)
 
@@ -109,7 +115,7 @@ func scala(mi monitorInterface, ctx context.Context, in *tio_control_v1.MonitorS
 	}, nil
 }
 
-func ploy(mi monitorInterface, ctx context.Context, in *tio_control_v1.MonitorScalaRequest) (*tio_control_v1.TioReply, error) {
+func ploy(ctx context.Context, in *tio_control_v1.MonitorScalaRequest, mi monitorInterface) (*tio_control_v1.TioReply, error) {
 	mi.UpdatePloy(in.Name, int(in.Num))
 
 	return &tio_control_v1.TioReply{
@@ -127,8 +133,8 @@ func (m monImplement) WatchProemetheus() (chan []envoyTraffic, error) {
 }
 
 func (m monImplement) watchPrometheus(traffic chan []envoyTraffic) {
-	logrus.Infof("Prometheus Watch Start - - -")
-	c := time.NewTicker(1 * time.Minute)
+	logrus.Infof("Prometheus Watch Start(Every 5 min)  - - -")
+	c := time.NewTicker(5 * time.Minute)
 	for {
 		select {
 		case <-c.C:
@@ -246,8 +252,6 @@ func (m monImplement) WaitScala(name string) (string, error) {
 
 	i := 0
 	for {
-		logrus.Infof("Query %s Scala Stauts %d times", name, i)
-
 		reply, err := c.DeployInfo(ctx, &tio_control_v1.DeployRequest{
 			Name: name,
 		})
@@ -256,6 +260,7 @@ func (m monImplement) WaitScala(name string) (string, error) {
 			return "", err
 		}
 
+		logrus.Infof("Query %s Scala Stauts %d times. It returns [%v]", name, i, reply)
 		if reply.Code == tio_control_v1.CommonRespCode_RespSucc {
 			return reply.Msg, nil
 		}
@@ -385,10 +390,9 @@ func (m monImplement) NeedScala(traffic envoyTraffic) (bool, float64) {
 
 		return true, float64(1) / 2
 
-	} else {
-		return false, 0
 	}
 
+	return false, 0
 }
 
 func (m monImplement) queryConnectInSecnodRange(query string, stepVal int) (int, error) {
@@ -433,11 +437,11 @@ func (p prometheusImplement) QueryRange(query string, step Step, stepVal int) (i
 
 	result, warnings, err := v1api.QueryRange(ctx, query, r)
 	if err != nil {
-		return connectCount, fmt.Errorf("Error querying Prometheus: %v\n", err)
+		return connectCount, fmt.Errorf("Error querying Prometheus: %v ", err)
 	}
 
 	if len(warnings) > 0 {
-		return connectCount, fmt.Errorf("Warnings: %v\n", warnings)
+		return connectCount, fmt.Errorf("Warnings: %v ", warnings)
 	}
 
 	m, ok := result.(model.Matrix)
@@ -466,10 +470,10 @@ func (p prometheusImplement) QueryAllCluster() ([]string, error) {
 
 	result, warnings, err := v1api.LabelValues(ctx, "envoy_cluster_name")
 	if err != nil {
-		return clusters, fmt.Errorf("Error querying Prometheus: %v\n", err)
+		return clusters, fmt.Errorf("Error querying Prometheus: %v ", err)
 	}
 	if len(warnings) > 0 {
-		return clusters, fmt.Errorf("Warnings: %v\n", warnings)
+		return clusters, fmt.Errorf("Warnings: %v ", warnings)
 	}
 
 	for _, r := range result {

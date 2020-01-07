@@ -37,9 +37,13 @@ type envoyTraffic struct {
 }
 
 const (
+	// StepSecond 以秒为查询步长
 	StepSecond Step = iota
+	// StepMinute 以分为查询步长
 	StepMinute
+	// StepHour 以小时为查询时长
 	StepHour
 )
 
+// Step 步长类型
 type Step int
