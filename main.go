@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	mi, err := NewMonImplement()
+	mi, err := newMonImplement()
 	if err != nil {
 		logrus.Fatalf("Monitor Init Error. %s", err.Error())
 	}

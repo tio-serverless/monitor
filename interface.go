@@ -22,7 +22,7 @@ type monitorInterface interface {
 	// NeedScala 是否达到扩缩容标准
 	NeedScala(Traffic envoyTraffic) (bool, float64)
 	//DisableService 禁用服务之后,Envoy将会将请求转发到默认Cluster中
-	DisableService(string) error
+	DisableService(string) (bool, error)
 }
 
 type prometheusInterface interface {
@@ -37,9 +37,13 @@ type envoyTraffic struct {
 }
 
 const (
+	// StepSecond 以秒为查询步长
 	StepSecond Step = iota
+	// StepMinute 以分为查询步长
 	StepMinute
+	// StepHour 以小时为查询时长
 	StepHour
 )
 
+// Step 步长类型
 type Step int

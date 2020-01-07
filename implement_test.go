@@ -49,7 +49,7 @@ func Test_scala(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := scala(tt.args.mi, tt.args.ctx, tt.args.in)
+			got, err := scala(tt.args.ctx, tt.args.in, tt.args.mi)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("scala() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -99,7 +99,7 @@ func Test_ploy(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := ploy(tt.args.mi, tt.args.ctx, tt.args.in)
+			got, err := ploy(tt.args.ctx, tt.args.in, tt.args.mi)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ploy() error = %v, wantErr %v", err, tt.wantErr)
 				return
