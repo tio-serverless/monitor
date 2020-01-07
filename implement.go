@@ -215,7 +215,7 @@ func (m monImplement) Sacla(name string, num float64) (bool, error) {
 	}
 
 	c := tio_control_v1.NewTioDeployServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 
 	defer cancel()
 
